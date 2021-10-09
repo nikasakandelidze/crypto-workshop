@@ -46,8 +46,12 @@ func getStdIn() {
 			break
 		}
 	}
-	fmt.Println(head.NextHash)
-	fmt.Println(head.Value)
+	temp := head
+	for temp != nil {
+		fmt.Println(temp.Value)
+		fmt.Println(temp.NextHash + " \n")
+		temp = temp.Next
+	}
 }
 
 func main() {
