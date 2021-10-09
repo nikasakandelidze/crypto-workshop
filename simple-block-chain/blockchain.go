@@ -2,12 +2,15 @@ package main
 
 import (
 	"bufio"
+	"crypto/sha1"
+	"encoding/base64"
 	"fmt"
 	"os"
 )
 
 const (
-	START = 1
+	START   = "START"
+	NO_HASH = "NO_HASH"
 )
 
 type Node struct {
@@ -21,23 +24,30 @@ func isStringValid(str string) bool {
 }
 
 func getHashOfValue(value string) string {
-	return "1"
+	hasher := sha1.New()
+	hasher.Write([]byte(value))
+	sha := base64.URLEncoding.EncodeToString(hasher.Sum(nil))
+	return sha
 }
 
 func getStdIn() {
 	scanner := bufio.NewScanner(os.Stdin)
-	head := &Node{Next: nil, Value: START, NextHash: nil}
-	current := &head
+	head := &Node{Next: nil, Value: START, NextHash: NO_HASH}
+	current := head
 	for scanner.Scan() {
-		fmt.Println("Please enter value for next block in blockchain")
+		fmt.Print("Please enter value for next block in blockchain: ")
 		inputValue := scanner.Text()
 		if isStringValid(inputValue) {
-			next := &Node{Next: nil, Value: inputValue, NextHash: nil}
-			current.Hash = getHashOfValue(current.Value)
-			current.Next = &next
-			current = &next
+			next := &Node{Next: nil, Value: inputValue, NextHash: NO_HASH}
+			current.NextHash = getHashOfValue(current.Value)
+			current.Next = next
+			current = next
+		} else {
+			break
 		}
 	}
+	fmt.Println(head.NextHash)
+	fmt.Println(head.Value)
 }
 
 func main() {
