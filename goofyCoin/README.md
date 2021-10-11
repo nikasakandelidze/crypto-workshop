@@ -1,4 +1,8 @@
 # goofy coin main idea:
+	1)only goofy can produce new coins
+	2) every user has public keys associated with them
+	3) every user can transfer coin to another user by specifying a statement in datastructure
+	payload and signing it with public key.
 ## Generating and owning coins
 	It's a centralized crypto currency. There is one centralized authority called goofy
 	who can generate new coins. Upon generating new coin goofy signs it with his public
@@ -18,7 +22,8 @@
 		Alice can prove that she owns a coin by presenting strucutre above, since 
 		it was signed to goofy and previosuly owned by him, anyone can validate this ds with goofy.
 ## problem
-	One problem with this coin is that whole tranmsaction log/datastructure is not syncrhonized between
+	1) Central authroity of coin generation. If goofy would like to do something malicous or bad no one would go agains him.
+	2) Another problem with this coin is that whole tranmsaction log/datastructure is not syncrhonized between
 	parties  and every current coin user has only his/her copuy of log. Which means that at some point
 	coin owner can create 2 structures sign both of them and in the payload specify for each of them
 	different target public figure. Both of them will recieve this structure and both of them will assume that
