@@ -25,7 +25,7 @@ type User struct {
 type Node struct {
 	payload   string
 	signature []byte
-	Node      *prev
+	prev      *Node
 	ownerId   string
 }
 
@@ -54,19 +54,22 @@ func createUser(name string) *User {
 }
 
 func createNewNode(payload string, ownerId string) *Node {
-	user := usersStorage[owerId]
-	r, s, err := ecdsa.Sign(rand.Reader, user.publicKey, payload)
+	user := usersStorage[ownerId]
+	r, s, err := ecdsa.Sign(rand.Reader, user.privateKey, []byte(payload))
 	if err != nil {
 		fmt.Println("Failed to sign payload of new node")
 		return nil
 	}
-	newNode := &Node{payload: payload, signature: append(r.Bytes()[:], s.Bytes()[:]), prev: nil}
+	newNode := &Node{payload: payload, signature: append(r.Bytes(), s.Bytes()...), prev: nil}
 	return newNode
 }
 
 func createNewCoin(ownerId string) *Node {
+	fmt.Println(ownerId)
 	node := createNewNode(CREATE_INSTRUCTION, ownerId)
+	fmt.Println("created node")
 	if node == nil {
+		fmt.Println("node is nil")
 		return nil
 	}
 	if ledger != nil {
@@ -86,8 +89,10 @@ func main() {
 	if user == nil {
 		fmt.Println("Failed to create a user")
 	}
-	fmt.Println("Created main user(BOSS): goofy")
-	goofyId := usersStorage[user.UUID]
-	createNewCoin(goofyId)
-
+	usersStorage[user.UUID] = user
+	goofy := usersStorage[user.UUID]
+	updatedNode := createNewCoin(goofy.UUID)
+	if updatedNode == nil {
+		fmt.Println("Error while creating new coin")
+	}
 }
