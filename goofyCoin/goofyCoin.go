@@ -9,6 +9,12 @@ import (
 	uuid "github.com/google/uuid"
 )
 
+const (
+	BOSS                 = "goofy"
+	CREATE_INSTRUCTION   = "CreateCoin"
+	TRANSFER_INSTRUCTION = "TransferCoin"
+)
+
 type User struct {
 	UUID       string
 	name       string
@@ -16,7 +22,17 @@ type User struct {
 	publicKey  *ecdsa.PublicKey
 }
 
-var usersStorage = make(map[string]*User)
+type Node struct {
+	payload   string
+	signature []byte
+	Node      *prev
+	ownerId   string
+}
+
+//global variables
+
+var usersStorage = make(map[string]*User) //for storing users
+var ledger *Node
 
 func generateKeys() (*ecdsa.PrivateKey, *ecdsa.PublicKey, error) {
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -37,12 +53,41 @@ func createUser(name string) *User {
 	return newUser
 }
 
+func createNewNode(payload string, ownerId string) *Node {
+	user := usersStorage[owerId]
+	r, s, err := ecdsa.Sign(rand.Reader, user.publicKey, payload)
+	if err != nil {
+		fmt.Println("Failed to sign payload of new node")
+		return nil
+	}
+	newNode := &Node{payload: payload, signature: append(r.Bytes()[:], s.Bytes()[:]), prev: nil}
+	return newNode
+}
+
+func createNewCoin(ownerId string) *Node {
+	node := createNewNode(CREATE_INSTRUCTION, ownerId)
+	if node == nil {
+		return nil
+	}
+	if ledger != nil {
+		node.prev = ledger
+	}
+	ledger = node
+	return ledger
+}
+
+func transferCoin(fromId string, toId string) {
+
+}
+
 func main() {
 	fmt.Println("Starting goofy coin mechanism")
-	user := createUser("goofy")
+	user := createUser(BOSS)
 	if user == nil {
 		fmt.Println("Failed to create a user")
 	}
-	usersStorage[user.UUID] = user
-	fmt.Println(usersStorage[user.UUID])
+	fmt.Println("Created main user(BOSS): goofy")
+	goofyId := usersStorage[user.UUID]
+	createNewCoin(goofyId)
+
 }
