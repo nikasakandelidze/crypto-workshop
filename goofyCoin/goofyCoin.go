@@ -12,7 +12,7 @@ import (
 const (
 	BOSS                 = "goofy"
 	CREATE_INSTRUCTION   = "CreateCoin"
-	TRANSFER_INSTRUCTION = "TransferCoin"
+	TRANSFER_INSTRUCTION = "TransferCoin:"
 )
 
 type User struct {
@@ -33,6 +33,7 @@ type Node struct {
 
 var usersStorage = make(map[string]*User) //for storing users
 var ledger *Node
+var GOOFYS_UUID string
 
 func generateKeys() (*ecdsa.PrivateKey, *ecdsa.PublicKey, error) {
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -65,9 +66,11 @@ func createNewNode(payload string, ownerId string) *Node {
 }
 
 func createNewCoin(ownerId string) *Node {
-	fmt.Println(ownerId)
+	if ownerId != GOODYS_ID {
+		fmt.Println("Oncly goofy can create coins")
+		return nil
+	}
 	node := createNewNode(CREATE_INSTRUCTION, ownerId)
-	fmt.Println("created node")
 	if node == nil {
 		fmt.Println("node is nil")
 		return nil
@@ -80,6 +83,21 @@ func createNewCoin(ownerId string) *Node {
 }
 
 func transferCoin(fromId string, toId string) {
+	fromUser := usersStorage[fromId]
+	toUser := usersStorage[toId]
+	if fromUser == nil || toUser == nil {
+		fmt.Println("Failed transaction! error: to user and from user ids' must be specified correctly.")
+		return
+	}
+	newNode := createNewNode(TRANSFER_INSTRUCTION+fromId+":"+toId, ownerId)
+	if newNode == nil {
+		fmt.Println("Failed to create new node for transaction")
+	}
+	if ledger == nil {
+		fmt.Println("No coins created yet. Failed to make a transaction.")
+	}
+	newNode.prev = ledger
+	ledger = newNode
 
 }
 
@@ -89,10 +107,12 @@ func main() {
 	if user == nil {
 		fmt.Println("Failed to create a user")
 	}
+	GOOFYS_ID = user.UUID
 	usersStorage[user.UUID] = user
 	goofy := usersStorage[user.UUID]
 	updatedNode := createNewCoin(goofy.UUID)
 	if updatedNode == nil {
 		fmt.Println("Error while creating new coin")
 	}
+	fmt.Println(ledger)
 }
