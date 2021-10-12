@@ -52,6 +52,7 @@ func createUser(name string) *User {
 		return nil
 	}
 	newUser := &User{UUID: uuid.New().String(), name: name, privateKey: privateKey, publicKey: publicKey}
+	usersStorage[newUser.UUID] = newUser
 	return newUser
 }
 
@@ -108,7 +109,7 @@ func transferCoin(fromId string, toId string, coinId string) {
 	}
 	newNode.prev = ledger
 	ledger = newNode
-
+	fmt.Println("User with id: " + fromId + "succesfully transfered coin to user with id: " + toId)
 }
 
 func main() {
@@ -118,7 +119,6 @@ func main() {
 		fmt.Println("Failed to create a user")
 	}
 	GOOFYS_UUID = userGoofy.UUID
-	usersStorage[userGoofy.UUID] = userGoofy
 	goofy := usersStorage[userGoofy.UUID]
 	coin := createNewCoin(goofy.UUID)
 	if coin == nil {
