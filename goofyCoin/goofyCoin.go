@@ -5,13 +5,14 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"fmt"
+	"strings"
 
 	uuid "github.com/google/uuid"
 )
 
 const (
 	BOSS                 = "goofy"
-	CREATE_INSTRUCTION   = "CreateCoin"
+	CREATE_INSTRUCTION   = "CreateCoin:"
 	TRANSFER_INSTRUCTION = "TransferCoin:"
 )
 
@@ -54,6 +55,15 @@ func createUser(name string) *User {
 	return newUser
 }
 
+func getTokenUUIDFromPayload(payload string) string {
+	splittedArray := strings.Split(payload, ":")
+	if len(splittedArray) == 2 {
+		return splittedArray[1]
+	} else {
+		return ""
+	}
+}
+
 func createNewNode(payload string, ownerId string) *Node {
 	user := usersStorage[ownerId]
 	r, s, err := ecdsa.Sign(rand.Reader, user.privateKey, []byte(payload))
@@ -70,7 +80,7 @@ func createNewCoin(ownerId string) *Node {
 		fmt.Println("Oncly goofy can create coins")
 		return nil
 	}
-	node := createNewNode(CREATE_INSTRUCTION, ownerId)
+	node := createNewNode(CREATE_INSTRUCTION+UUID.New().String(), ownerId)
 	if node == nil {
 		fmt.Println("node is nil")
 		return nil
@@ -82,7 +92,7 @@ func createNewCoin(ownerId string) *Node {
 	return ledger
 }
 
-func transferCoin(fromId string, toId string) {
+func transferCoin(fromId string, toId string, coinId string) {
 	fromUser := usersStorage[fromId]
 	toUser := usersStorage[toId]
 	if fromUser == nil || toUser == nil {
@@ -114,5 +124,4 @@ func main() {
 	if updatedNode == nil {
 		fmt.Println("Error while creating new coin")
 	}
-	fmt.Println(ledger)
 }
