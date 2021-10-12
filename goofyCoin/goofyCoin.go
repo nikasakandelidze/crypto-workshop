@@ -76,11 +76,11 @@ func createNewNode(payload string, ownerId string) *Node {
 }
 
 func createNewCoin(ownerId string) *Node {
-	if ownerId != GOODYS_ID {
+	if ownerId != GOOFYS_UUID {
 		fmt.Println("Oncly goofy can create coins")
 		return nil
 	}
-	node := createNewNode(CREATE_INSTRUCTION+UUID.New().String(), ownerId)
+	node := createNewNode(CREATE_INSTRUCTION+uuid.New().String(), ownerId)
 	if node == nil {
 		fmt.Println("node is nil")
 		return nil
@@ -99,7 +99,7 @@ func transferCoin(fromId string, toId string, coinId string) {
 		fmt.Println("Failed transaction! error: to user and from user ids' must be specified correctly.")
 		return
 	}
-	newNode := createNewNode(TRANSFER_INSTRUCTION+fromId+":"+toId, ownerId)
+	newNode := createNewNode(TRANSFER_INSTRUCTION+fromId+":"+toId, fromId)
 	if newNode == nil {
 		fmt.Println("Failed to create new node for transaction")
 	}
@@ -113,15 +113,22 @@ func transferCoin(fromId string, toId string, coinId string) {
 
 func main() {
 	fmt.Println("Starting goofy coin mechanism")
-	user := createUser(BOSS)
-	if user == nil {
+	userGoofy := createUser(BOSS)
+	if userGoofy == nil {
 		fmt.Println("Failed to create a user")
 	}
-	GOOFYS_ID = user.UUID
-	usersStorage[user.UUID] = user
-	goofy := usersStorage[user.UUID]
-	updatedNode := createNewCoin(goofy.UUID)
-	if updatedNode == nil {
+	GOOFYS_UUID = userGoofy.UUID
+	usersStorage[userGoofy.UUID] = userGoofy
+	goofy := usersStorage[userGoofy.UUID]
+	coin := createNewCoin(goofy.UUID)
+	if coin == nil {
 		fmt.Println("Error while creating new coin")
 	}
+	userAlice := createUser("Alice")
+	if userAlice == nil {
+		fmt.Println("Failed to create a user")
+	}
+	coinId := getTokenUUIDFromPayload(coin.payload)
+	transferCoin(userGoofy.UUID, userAlice.UUID, coinId)
+
 }
