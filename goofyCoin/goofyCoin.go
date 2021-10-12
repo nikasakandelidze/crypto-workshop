@@ -5,6 +5,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"fmt"
+	"math/big"
 	"strings"
 
 	uuid "github.com/google/uuid"
@@ -25,7 +26,7 @@ type User struct {
 
 type Node struct {
 	payload   string
-	signature []byte
+	signature []*big.Int
 	prev      *Node
 	ownerId   string
 }
@@ -72,7 +73,7 @@ func createNewNode(payload string, ownerId string) *Node {
 		fmt.Println("Failed to sign payload of new node")
 		return nil
 	}
-	newNode := &Node{payload: payload, signature: append(r.Bytes(), s.Bytes()...), prev: nil}
+	newNode := &Node{payload: payload, signature: []*big.Int{r, s}, prev: nil, ownerId: ownerId}
 	return newNode
 }
 
@@ -90,6 +91,7 @@ func createNewCoin(ownerId string) *Node {
 		node.prev = ledger
 	}
 	ledger = node
+	fmt.Println("Goofy created a new coin")
 	return ledger
 }
 
@@ -112,7 +114,46 @@ func transferCoin(fromId string, toId string, coinId string) {
 	fmt.Println("User with id: " + fromId + "succesfully transfered coin to user with id: " + toId)
 }
 
+//below are verification utility functions
+
+func verify() {
+	fmt.Println("***************Starting verifying process*****************")
+	currentNode := ledger
+	for currentNode != nil {
+		payload := currentNode.payload
+		identifier := strings.Split(payload, ":")
+		currentNodeOwnerId := currentNode.ownerId
+		fmt.Println(currentNodeOwnerId)
+		user := usersStorage[currentNodeOwnerId]
+		if user == nil {
+			fmt.Println("Failed to verify, couldn't find user in usersStorage")
+			return
+		}
+		if identifier[0] == "CreateCoin" {
+			goofyUser := usersStorage[GOOFYS_UUID]
+			isVerified := ecdsa.Verify(goofyUser.publicKey, []byte(currentNode.payload), currentNode.signature[0], currentNode.signature[1])
+			if !isVerified {
+				fmt.Println("Failed to verify signature for the coin creation node. payload: " + currentNode.payload)
+				return
+			}
+			fmt.Println("Succesfully verified coin creation by goofy for payload: " + currentNode.payload)
+		}
+		if identifier[0] == "TransferCoin" {
+			fromId := identifier[1]
+			fromUser := usersStorage[fromId]
+			isVerified := ecdsa.Verify(fromUser.publicKey, []byte(currentNode.payload), currentNode.signature[0], currentNode.signature[1])
+			if !isVerified {
+				fmt.Println("Failed to verify signature for the coin transaction. payload: " + currentNode.payload)
+				return
+			}
+			fmt.Println("Succesfully verified coin transaction with payload: " + currentNode.payload)
+		}
+		currentNode = currentNode.prev
+	}
+}
+
 func main() {
+	//initialize
 	fmt.Println("Starting goofy coin mechanism")
 	userGoofy := createUser(BOSS)
 	if userGoofy == nil {
@@ -130,5 +171,6 @@ func main() {
 	}
 	coinId := getTokenUUIDFromPayload(coin.payload)
 	transferCoin(userGoofy.UUID, userAlice.UUID, coinId)
-
+	//verify
+	verify()
 }
