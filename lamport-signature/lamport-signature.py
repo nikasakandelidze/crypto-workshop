@@ -56,10 +56,8 @@ def verify_message_signature(signature, message, pub):  # verify lamport signatu
             l_byte = '0' + l_byte
 
         for _ in range(0, 8):
-            if l_byte[-1:] == '0':
-                verify.append((sha256_hash(signature[z]), pub[z][0]))
-            else:
-                verify.append((sha256_hash(signature[z]), pub[z][1]))
+            verify.append(
+                (sha256_hash(signature[z]), pub[z][0 if l_byte[-1:] == '0' else 1]))
             l_byte = l_byte[:-1]
             z += 1
 
