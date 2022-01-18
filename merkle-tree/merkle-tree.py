@@ -1,7 +1,5 @@
 from hashlib import sha256
-import sys
 from typing import Any, List
-from xmlrpc.client import Boolean
 
 
 def sha256_hash(value):
@@ -11,7 +9,7 @@ def sha256_hash(value):
 
 
 class MerkleTree:
-    def __init__(self, value: str, left: Any, right: Any, isLeaf: Boolean = False) -> None:
+    def __init__(self, value: str, left: Any, right: Any, isLeaf=False) -> None:
         self.right = right
         self.left = left
         self.value = value
@@ -49,7 +47,7 @@ def build_merklee_tree(transactions: List[str]) -> MerkleTree:
     return merklee_root
 
 
-def verify_merkle_tree(merkle_tree) -> Boolean:
+def verify_merkle_tree(merkle_tree):
     if merkle_tree is None:
         return True
     if merkle_tree.left is None and merkle_tree.right is None:
